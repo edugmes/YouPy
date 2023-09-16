@@ -2,11 +2,12 @@ import argparse
 from pytube import YouTube, Playlist
 
 def download_video(video_url: str, resolution: str | None = None, extension: str | None = None, path: str | None = None) -> None:
+    print(locals())
     yt = YouTube(video_url)
     if not resolution and not extension:
         video = yt.streams.get_highest_resolution()
     else:
-        streams = yt.streams.filter(progressive=True, file_extension=extension).order_by('resolution').desc()
+        streams = yt.streams.filter(progressive=True, file_extension=extension, resolution=resolution).order_by('resolution').desc()
         if not streams:
             video = yt.streams.get_highest_resolution()
         else:
@@ -47,8 +48,8 @@ class YouPyCmdParser:
 
         # Group 2: sub commands to be used with --video and --playlist
         group_video_playlist = self.parser.add_argument_group("--video and --playlist options")
-        group_video_playlist.add_argument('-e', '--ext', type=str, help='Set download extension (e.g. mp4, mkv, avi)', default=self.default_ext)
-        group_video_playlist.add_argument('-r', '--res', type=str, help='Set download resolution (e.g. 1080p, 2k, 4k)', default=self.default_res)
+        group_video_playlist.add_argument('-e', '--ext', type=str, nargs="?", help='Set download extension (e.g. mp4, mkv, avi)', default=self.default_ext, const=self.default_ext)
+        group_video_playlist.add_argument('-r', '--res', type=str, nargs="?", help='Set download resolution (e.g. 1080p, 2k, 4k)', default=self.default_res, const=self.default_res)
 
         # Group 3: sub commands to be used with --info
         group_info = self.parser.add_argument_group("--info options")
@@ -67,6 +68,8 @@ class YouPyCmdParser:
             
             if (args.res and args.res != self.default_res)  or (args.ext and args.ext != self.default_ext):
                 self.parser.error('--res or --ext can only be used if --video or --playlist is present')
+            
+            self.parser.print_help()
         
         else:
             # Check for invalid extension
