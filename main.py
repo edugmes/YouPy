@@ -2,7 +2,6 @@ import argparse
 from pytube import YouTube, Playlist
 
 def download_video(video_url: str, resolution: str | None = None, extension: str | None = None, path: str | None = None) -> None:
-    print(locals())
     yt = YouTube(video_url)
     if not resolution and not extension:
         video = yt.streams.get_highest_resolution()
@@ -18,19 +17,24 @@ def download_video(video_url: str, resolution: str | None = None, extension: str
     video.download(output_path=path)
 
 
-def download_playlist(playlist_url: str) -> None:
+def download_playlist(playlist_url: str, audio_only: bool = False) -> None:
     playlist = Playlist(playlist_url)
 
-    for url in playlist:
-        download_video(url, path="playlist")
+    if not audio_only:
+        for url in playlist:
+            download_video(url, path="playlist")
+    else:
+        for url in playlist:
+            download_audio(url, path="playlist-audio")
 
-def download_audio(video_url: str) -> None:
+def download_audio(video_url: str, path: str | None = None) -> None:
     yt = YouTube(video_url)
     audio = yt.streams.filter(only_audio=True)[0]
 
     print(f"Downloading audio '{audio.title}' with extension={audio.mime_type}")
 
-    audio.download()
+    audio.download(output_path=path or "audio")
+
 
 class YouPyCmdParser:
     default_res = '720p'
@@ -85,7 +89,7 @@ if __name__ == '__main__':
 
     # Execute the commands
     if args.video:
-        download_video(video_url=args.video, resolution=args.res, extension=args.ext)
+        download_video(video_url=args.video, resolution=args.res, extension=args.ext, path="video")
     elif args.playlist:
         download_playlist(args.playlist)
     elif args.info:
